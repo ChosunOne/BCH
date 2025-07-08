@@ -32,6 +32,8 @@ double toc(double t0) {
 }
 
 
+// Gets the right factors of a word such that the left factor is the first
+// generator.  E.g. get_right_factors(AAAAB) = [AAAAB, AAAB, AAB, AB]
 size_t get_right_factors(size_t i, size_t J[], size_t kmax, uint32_t *p1, uint32_t *p2) {
     size_t k = 0;
     J[0] = i;
@@ -67,10 +69,15 @@ static void compute_goldberg_coefficients(lie_series_t *LS, int N) {
         }       
     }
     else {
+        printf("Word \t Goldberg Coefficient\n");
         #pragma omp for schedule(dynamic,256) 
         for (int i=LS->ii[N]-1; i>=0; i--) {
             LS->c[i] = goldberg_coefficient(LS->nn[i], LS->W[i], G); 
-        }       
+            print_word(LS, i);
+            printf("\t");
+            print_coefficient(LS, i);
+            printf("\n");
+        }
     }
 
     free_goldberg(G);
@@ -410,6 +417,15 @@ int str_coefficient(char *out, lie_series_t *LS,  int i) {
 
 void print_coefficient(lie_series_t *LS,  int i) {
     print_RATIONAL(LS->c[i], LS->denom);
+}
+
+void print_word(lie_series_t * LS, int i) {
+    uint8_t *word = LS->W[i];
+    for (int j = 0; j < LS->nn[i]; j++) {
+        if (word[j] == 0) printf("A");
+        else if (word[j] == 1) printf("B");
+        else printf("%d", word[j]);
+    }
 }
 
 

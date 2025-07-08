@@ -81,7 +81,7 @@ int main(int argc, char*argv[]) {
         goldberg_t *G = goldberg(N);
         print_goldberg(G);
         free_goldberg(G);
-        return EXIT_SUCCESS;
+        // return EXIT_SUCCESS;
     }
 
     int basis = get_arg(argc, argv, "basis", 0, 0, 5);

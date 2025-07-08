@@ -76,6 +76,7 @@ static uint32_t P_append(P_t *P, uint32_t i, uint8_t l, uint32_t *p1, uint32_t *
     uint64_t key = (((uint64_t) i)<< 8) | l;
     khint_t k = kh_get(P_Dict, (PH*) P->H, key);  // query the hash table
     if (k == kh_end((PH*) P->H)) {                // test if the key is missing
+        // If the word i is more than one letter
         if (nn[i]>1) {
             uint32_t        a11 = P_append(P, p1[i], l,           p1, p2, nn);
             uint32_t        a12 = P_append(P, p1[i], l+nn[p2[i]], p1, p2, nn);
@@ -173,13 +174,27 @@ void convert_to_lie_series(lie_series_t *LS, int N) {
     }
     double t0 = tic();
 
-    size_t i1 = LS->ii[N-1];
-    size_t i2 = LS->ii[N]-1;
+    size_t i1 = LS->ii[N-1]; // First lyndon word of length N
+    size_t i2 = LS->ii[N]-1; // Last lyndon word of length N
+    printf("LS[i1] \t LS[i2]\n");
+    print_word(LS, i1);
+    printf("\t");
+    print_word(LS, i2);
+    printf("\n");
 
+    // DI is a map of the word index -> multi-group
+    // A multi-group is just telling you the total number of each generator.
     uint32_t *DI  = multi_degree_indices( LS->K, LS->dim, LS->W, LS->nn);
+    for (int i = 0; i < LS->dim; i++) {
+        printf("DI[%d] = %d\n", i, DI[i]);
+    }
 
+    // Which multi-group is assigned to the first lyndon word of length N
     size_t h1 = DI[i1];
+    // Which multi-group is assigned to the last lyndon word of length N
     size_t h2 = DI[i2];
+    printf("h1 = %d\n", h1);
+    printf("h2 = %d\n", h2);
 
     double h_time[h2-h1+1];
     double h_time1[h2-h1+1];
@@ -190,8 +205,12 @@ void convert_to_lie_series(lie_series_t *LS, int N) {
 #endif
     #pragma omp parallel 
     {
+    // jj is a filtered list of the indices of words with the given multi-degree group index
     int *jj = calloc(LS->dim, sizeof(int));  // LS->dim far too large upper bound
+
+    // The right factors of the current word
     size_t JW[N];
+    // The right factors of the previous word
     size_t JB[N];
 
     /* Note: We choose schedule(dynamic, 1) because each
@@ -201,13 +220,14 @@ void convert_to_lie_series(lie_series_t *LS, int N) {
      */
     #pragma omp for schedule(dynamic,1) 
     for (int h=h1; h<=h2; h++) { /* over all multi-degrees */
-        int k = h-h1;
+        int k = h-h1; // The index over the multi-degrees from h1 to h2
         h_time[k] = tic();
         h_n[k] = 0;
 #ifdef _OPENMP
         h_thread[k] = omp_get_thread_num();
 #endif
 
+        // Filter the word list for words that are in the multi-group h
         int jj_max = 0; 
         for (int i=i1; i<=i2; i++) {
             if (DI[i]==h) {
@@ -216,12 +236,25 @@ void convert_to_lie_series(lie_series_t *LS, int N) {
             }
         }
 
+        // Create a table for storing commutator calculations
         P_t *P = P_init(LS->K, N, 2*jj_max);
         uint32_t *r = malloc(jj_max*sizeof(uint32_t));
 
+        // Loop over the filtered list of words in this group
         for (int y=0; y<jj_max; y++) {
+            // y is our word we are considering
             int j = jj[y];
+            // LS->p1 is the left factor such that y = p1 * p2
+            // LS->p2 is the right factor such that y = p1 * p2
             size_t kB = get_right_factors(j, JB, N, LS->p1, LS->p2);
+            printf("%d Right factors of ", kB);
+            print_word(LS, j);
+            printf("\n");
+            for (int z=0; z<kB; z++) {
+                print_word(LS, JB[z]);
+                printf("\n");
+            }
+            // 
             r[y] = P_append(P, JB[kB], kB, LS->p1, LS->p2, LS->nn);
         }
 #ifdef SIMD_VECTORIZED

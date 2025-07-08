@@ -67,6 +67,7 @@ int str_coefficient(char *out, lie_series_t *LS,  int i);
 void print_foliage(lie_series_t *LS,  int i, char *generators);
 void print_basis_element(lie_series_t *LS,  int i, char *generators);
 void print_coefficient(lie_series_t *LS,  int i);
+void print_word(lie_series_t *LS, int i);
 
 void print_lie_series(lie_series_t *LS, char *generators);
 void print_statistics(lie_series_t *LS);

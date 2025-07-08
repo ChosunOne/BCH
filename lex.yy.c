@@ -1,5 +1,5 @@
 
-#line 3 "lex.yy.c"
+#line 2 "lex.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -463,8 +463,8 @@ char *yytext;
 
 static rat_t parse_rational(char *s);
 
+#line 466 "lex.yy.c"
 #line 467 "lex.yy.c"
-#line 468 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -682,7 +682,7 @@ YY_DECL
 #line 17 "parser.l"
 
 
-#line 686 "lex.yy.c"
+#line 685 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -788,7 +788,7 @@ YY_RULE_SETUP
 #line 29 "parser.l"
 ECHO;
 	YY_BREAK
-#line 792 "lex.yy.c"
+#line 791 "lex.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
